@@ -26,3 +26,12 @@ print(f"The Circumference of the circle is:{round(Circumference,3)}")  # round (
 
 area = math.pi * radius * radius
 print(f"Area of the circle is {round(area,2)}cm²")
+
+
+#find the hypotenous of a right angle triangle
+import math
+
+a= float(input("Enter side A: "))
+b= float(input("Enter side B:  "))
+c = math.sqrt(pow(a,2) + pow(b,2))
+print(f"Hypotenous of triangle (H) is : {round(c,2)}")
