@@ -24,3 +24,19 @@ elif operator =='/':
     print(f"The division : {round(a/b,2)}")
 else:
     print(f"{operator} is not valid!! ")        
+
+
+
+# Python weight converter (k to p and p to k)
+
+weight = float(input("Enter your weight: "))
+unit = input("Kilogram or Pound (K or P )")
+if unit == 'K':
+    weight =weight*2.205
+    unit ='lbs.'
+elif unit == 'P':
+    weight /= 2.205
+    unit ='kg.'
+else :
+    print(f"{unit} is not valid")    
+print(f"Your weight is : {round(weight, 2)}{unit}")    
