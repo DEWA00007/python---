@@ -30,5 +30,7 @@ for question in questions:
     print()
 
 print("Thanks for playing quiz..")
-print(f"You got: {score}/{total}")    
+print(f"Total score: {score}/{total}")    
+percentage = (score/total)*100
+print(f"You got: {percentage:.2f}")
    
