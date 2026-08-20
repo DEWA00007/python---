@@ -26,6 +26,18 @@ class Library:
             return
 
         print("\n--- Library Books ---")
+
+        for book in self.books:
+            status = "Available" if book.available else "Borrowed"
+
+            print(f"ID: {book.book_id}")
+            print(f"Title: {book.title}")
+            print(f"Author: {book.author}")
+            print(f"Status: {status}")
+            print("--------------------")
+
+    def search_book(self):
+        keyword = input("Enter book title or author: ").lower()
      
     
 
