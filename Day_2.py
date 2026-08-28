@@ -1,7 +1,7 @@
 # String and it;s some methods.. 
 name = input(" Lionel Messi or  Cristiano Ronaldo ? ")
 
-# to Remove white space from str..
+# to Remove white space from str...
 name = name.strip()    
 print(name)
 
