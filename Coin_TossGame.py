@@ -39,7 +39,7 @@ while is_running:
 
         again=input("Do You want to Play agian(Y/N): ").upper()   
         if again =='Y':
-            pass
+            pass 
         else:
             is_running = False
 print()
