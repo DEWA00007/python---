@@ -11,7 +11,7 @@ def hi(to):         ## 'to' vanne eauta parameter banaiyo
  print("hi,",to)    
 naam = input("Aafno naam rakhne: ")
 hi(naam) 
-
+ 
 
 
 
