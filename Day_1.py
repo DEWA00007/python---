@@ -1,5 +1,6 @@
 #To print anything...
 print('Hello')
+print("Dewa")
 
 # To take input from user and print ..
 name = input("What is your name ? ")
