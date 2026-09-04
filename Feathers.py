@@ -207,11 +207,6 @@ def draw_fiber(start, end, color, width=1, bend=0):
 
     pause_frame()
 
-
-# ============================================================
-# FEATHER SHAFT
-# ============================================================
-
 def shaft_point(t):
     """
     Main curved feather shaft.
@@ -231,7 +226,6 @@ def shaft_point(t):
 
 def draw_shaft():
 
-    # Dark shadow beneath shaft
     shaft = [
         shaft_point(index / 50)
         for index in range(51)
@@ -244,7 +238,7 @@ def draw_shaft():
         animate=True
     )
 
-    # Main brown shaft
+ 
     stroke(
         shaft,
         "#6b3b21",
@@ -252,7 +246,7 @@ def draw_shaft():
         animate=True
     )
 
-    # Warm golden highlight
+   
     stroke(
         shaft,
         "#b87538",
@@ -260,7 +254,7 @@ def draw_shaft():
         animate=True
     )
 
-    # Fine bright center highlight
+
     stroke(
         shaft,
         "#e0a65a",
@@ -268,7 +262,6 @@ def draw_shaft():
         animate=True
     )
 
-    # Dark edge
     stroke(
         [
             shaft_point(index / 60)
@@ -283,7 +276,6 @@ def barb_end(base, side, length, variation):
 
     direction = 1 if side > 0 else -1
 
-    # Natural variation
     curve_factor = (
         0.62
         + 0.06 * math.sin(variation)
