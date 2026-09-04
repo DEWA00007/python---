@@ -581,21 +581,13 @@ def irregular_ring(
     )
 
 
-# ============================================================
-# PEACOCK EYE
-# ============================================================
-
 def draw_eye():
 
-    # Focal point of the feather
     center = (
         238,
         257
     )
 
-    # --------------------------------------------------------
-    # OUTER GOLD / BROWN AREA
-    # --------------------------------------------------------
 
     for layer in range(18):
 
@@ -620,9 +612,6 @@ def draw_eye():
         if layer % 2 == 0:
             pause_frame()
 
-    # --------------------------------------------------------
-    # GREEN REGION
-    # --------------------------------------------------------
 
     for layer in range(14):
 
@@ -716,8 +705,6 @@ def draw_eye():
 
         if layer % 2 == 0:
             pause_frame()
-
-    # Fine fibers across the eye
     draw_eye_fibers(
         center
     )
