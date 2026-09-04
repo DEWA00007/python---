@@ -85,11 +85,6 @@ def rgba_mix(first, second, amount):
         for value in values
     )
 
-
-# ============================================================
-# ANIMATION ENGINE
-# ============================================================
-
 def pause_frame(force=False):
     """
     Refresh the Turtle screen only occasionally.
@@ -109,10 +104,6 @@ def pause_frame(force=False):
         if DRAW_DELAY > 0:
             time.sleep(DRAW_DELAY)
 
-
-# ============================================================
-# CURVES
-# ============================================================
 
 def curve_points(start, end, bend=0.0, steps=6):
     """
@@ -155,11 +146,6 @@ def curve_points(start, end, bend=0.0, steps=6):
         points.append((x, y))
 
     return points
-
-
-# ============================================================
-# DRAWING
-# ============================================================
 
 def stroke(points, color, width=1, animate=False):
     """
