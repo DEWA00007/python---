@@ -421,11 +421,6 @@ def draw_feather_body():
         "#174a55",
         "#286d5e",
     ]
-
-    # --------------------------------------------------------
-    # MAIN LONG FIBERS
-    # --------------------------------------------------------
-
     for index in range(1050):
 
         t = (
@@ -443,21 +438,19 @@ def draw_feather_body():
             min(0.985, t)
         )
 
-        # Alternate sides
+    
         side = (
             1
             if index % 2
             else -1
         )
 
-        # Feather becomes asymmetric toward tip
         if t > 0.72 and side < 0:
             if random.random() < 0.70:
                 side = 1
 
         base = shaft_point(t)
 
-        # Feather naturally expands and tapers
         taper = math.sin(
             math.pi * min(1.0, t)
         )
@@ -499,7 +492,7 @@ def draw_feather_body():
                 )
             )
 
-        # Occasional darker fibers
+       
         if index % 17 == 0:
 
             color = rgba_mix(
@@ -518,15 +511,6 @@ def draw_feather_body():
             color,
             detail=(index % 3 != 0)
         )
-
-        # Important:
-        # draw_fiber already batches animation,
-        # so no extra pause is necessary here.
-
-
-# ============================================================
-# ORGANIC EYE RINGS
-# ============================================================
 
 def irregular_ring(
     center,
