@@ -922,14 +922,8 @@ def draw_highlights():
         )
 
 
-# ============================================================
-# SUBTLE BACKGROUND
-# ============================================================
 
 def draw_background():
-
-    # Base background is already set.
-    # Add only a few extremely subtle green atmospheric curves.
 
     colors = [
         "#03100c",
@@ -968,7 +962,7 @@ def draw_background():
             10
         )
 
-        # Background is deliberately fast.
+       
         stroke(
             points,
             random.choice(colors),
@@ -978,14 +972,8 @@ def draw_background():
 
     screen.update()
 
-
-# ============================================================
-# FINAL ATMOSPHERE
-# ============================================================
-
 def final_details():
 
-    # A few ultra-thin dark fibers near the base
     for index in range(35):
 
         t = random.uniform(
@@ -1030,22 +1018,9 @@ def final_details():
         )
 
 
-# ============================================================
-# MAIN
-# ============================================================
-
 def main():
 
-    # --------------------------------------------------------
-    # 1. BACKGROUND
-    # --------------------------------------------------------
-
     draw_background()
-
-    # --------------------------------------------------------
-    # 2. CENTRAL SHAFT
-    # --------------------------------------------------------
-
     draw_shaft()
     draw_feather_body()
     draw_eye()
