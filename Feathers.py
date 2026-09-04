@@ -1,358 +1,1059 @@
-import turtle
+"""
+Animated, hand-built realistic peacock feather.
+Single Python file.
+Uses ONLY Python Turtle + standard library.
+
+No PNG/JPG/SVG or external image files.
+"""
+
 import math
 import random
+import time
+import turtle
 
-# =========================================================
-# PEACOCK FEATHER — CENTERED + SMALLER + DETAILED
-# =========================================================
+
+# ============================================================
+# SETTINGS
+# ============================================================
+
+random.seed(23)
+
+WIDTH = 1000
+HEIGHT = 760
+
+BG = "#020907"
+
+# Animation controls
+# Increase DRAW_DELAY for slower animation.
+# Decrease it for faster animation.
+DRAW_DELAY = 0.012
+
+# Turtle will draw many things before refreshing the screen.
+# Larger = faster animation.
+FRAME_EVERY = 28
+
+operation_count = 0
+
+
+# ============================================================
+# TURTLE SETUP
+# ============================================================
 
 screen = turtle.Screen()
-screen.setup(800, 800)
-screen.bgcolor("#071426")
-screen.title("Krishna's Peacock Feather")
+screen.setup(WIDTH, HEIGHT)
+screen.title("Peacock Feather — Hand Drawn")
+screen.bgcolor(BG)
 
-# About 5x faster than normal Turtle drawing
+# No automatic refreshing.
 screen.tracer(0, 0)
 
-t = turtle.Turtle()
-t.speed(0)
-t.hideturtle()
-
-random.seed(10)
-
-
-# =========================================================
-# BASIC FUNCTIONS
-# =========================================================
-
-def ellipse(x, y, rx, ry, color):
-    t.penup()
-    t.goto(x + rx, y)
-    t.pendown()
-
-    t.color(color)
-    t.begin_fill()
-
-    for i in range(50):
-        angle = 2 * math.pi * i / 50
-
-        t.goto(
-            x + rx * math.cos(angle),
-            y + ry * math.sin(angle)
-        )
-
-    t.end_fill()
+pen = turtle.Turtle()
+pen.hideturtle()
+pen.speed(0)
+pen.penup()
 
 
-def line(points, color, width=1):
-    t.color(color)
-    t.pensize(width)
+# ============================================================
+# COLOR UTILITIES
+# ============================================================
 
-    t.penup()
-    t.goto(points[0])
-    t.pendown()
+def rgba_mix(first, second, amount):
+    """
+    Mix two hexadecimal colors.
+    Used to simulate subtle color transitions.
+    """
 
-    for p in points[1:]:
-        t.goto(p)
+    amount = max(0.0, min(1.0, amount))
 
-
-# =========================================================
-# FEATHER POSITION
-# =========================================================
-
-# Everything is centered around this point
-CENTER_X = 0
-CENTER_Y = 20
-
-
-# =========================================================
-# FEATHER STEM
-# =========================================================
-
-def stem_x(y):
-
-    # Gentle curve
-    return CENTER_X + 0.00025 * (y + 260) ** 2 - 35
-
-
-stem = []
-
-for i in range(130):
-
-    y = -280 + i * 4
-
-    stem.append(
-        (stem_x(y), y)
+    a = tuple(
+        int(first[index:index + 2], 16)
+        for index in (1, 3, 5)
     )
 
-# Main stem
-line(stem, "#795021", 8)
+    b = tuple(
+        int(second[index:index + 2], 16)
+        for index in (1, 3, 5)
+    )
 
-# Golden highlight
-line(stem, "#D4A548", 2)
+    values = [
+        round(a[i] + (b[i] - a[i]) * amount)
+        for i in range(3)
+    ]
+
+    return "#" + "".join(
+        f"{value:02x}"
+        for value in values
+    )
 
 
-# =========================================================
-# FEATHER BARBS
-# =========================================================
+# ============================================================
+# ANIMATION ENGINE
+# ============================================================
 
-# Moderate number of strands
-for i in range(260):
+def pause_frame(force=False):
+    """
+    Refresh the Turtle screen only occasionally.
 
-    y = -120 + i * 2.8
+    The original version refreshed the screen thousands
+    of times. This version batches drawing operations so
+    the animation remains smooth but dramatically faster.
+    """
 
-    if y > 610:
-        break
+    global operation_count
 
-    x0 = stem_x(y)
+    operation_count += 1
 
-    progress = (y + 120) / 730
+    if force or operation_count % FRAME_EVERY == 0:
+        screen.update()
 
-    # Smaller feather width
-    width = 205 * math.sin(progress * math.pi)
+        if DRAW_DELAY > 0:
+            time.sleep(DRAW_DELAY)
 
-    if width < 5:
-        continue
 
-    for side in [-1, 1]:
+# ============================================================
+# CURVES
+# ============================================================
 
-        length = width * random.uniform(
-            0.75,
-            1.0
+def curve_points(start, end, bend=0.0, steps=6):
+    """
+    Create a gently curved quadratic line.
+    """
+
+    midpoint = (
+        (start[0] + end[0]) / 2,
+        (start[1] + end[1]) / 2
+    )
+
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+
+    length = max(1.0, math.hypot(dx, dy))
+
+    control = (
+        midpoint[0] - dy / length * bend,
+        midpoint[1] + dx / length * bend
+    )
+
+    points = []
+
+    for index in range(steps + 1):
+
+        t = index / steps
+
+        x = (
+            (1 - t) ** 2 * start[0]
+            + 2 * (1 - t) * t * control[0]
+            + t ** 2 * end[0]
         )
 
-        x1 = x0 + side * length
+        y = (
+            (1 - t) ** 2 * start[1]
+            + 2 * (1 - t) * t * control[1]
+            + t ** 2 * end[1]
+        )
 
-        y1 = y + length * 0.42
+        points.append((x, y))
 
-        curve = side * random.uniform(
-            8,
-            22
+    return points
+
+
+# ============================================================
+# DRAWING
+# ============================================================
+
+def stroke(points, color, width=1, animate=False):
+    """
+    Draw a line through points.
+
+    Animation is intentionally batched.
+    """
+
+    pen.color(color)
+    pen.width(width)
+
+    pen.penup()
+    pen.goto(points[0])
+    pen.pendown()
+
+    for point in points[1:]:
+        pen.goto(point)
+
+    pen.penup()
+
+    if animate:
+        pause_frame()
+
+
+def draw_fiber(start, end, color, width=1, bend=0):
+    """
+    Draw one feather fiber.
+
+    One complete fiber is treated as one animation unit.
+    """
+
+    points = curve_points(
+        start,
+        end,
+        bend,
+        steps=6
+    )
+
+    stroke(
+        points,
+        color,
+        width,
+        animate=False
+    )
+
+    pause_frame()
+
+
+# ============================================================
+# FEATHER SHAFT
+# ============================================================
+
+def shaft_point(t):
+    """
+    Main curved feather shaft.
+
+    t = 0 -> bottom-left
+    t = 1 -> upper-right
+    """
+
+    return (
+        -370 + 735 * t,
+
+        -292
+        + 600 * t
+        + 24 * math.sin(t * math.pi * 0.85)
+    )
+
+
+def draw_shaft():
+
+    # Dark shadow beneath shaft
+    shaft = [
+        shaft_point(index / 50)
+        for index in range(51)
+    ]
+
+    stroke(
+        shaft,
+        "#28150e",
+        9,
+        animate=True
+    )
+
+    # Main brown shaft
+    stroke(
+        shaft,
+        "#6b3b21",
+        6,
+        animate=True
+    )
+
+    # Warm golden highlight
+    stroke(
+        shaft,
+        "#b87538",
+        3,
+        animate=True
+    )
+
+    # Fine bright center highlight
+    stroke(
+        shaft,
+        "#e0a65a",
+        1,
+        animate=True
+    )
+
+    # Dark edge
+    stroke(
+        [
+            shaft_point(index / 60)
+            for index in range(61)
+        ],
+        "#382016",
+        1,
+        animate=True
+    )
+
+
+# ============================================================
+# BARB GEOMETRY
+# ============================================================
+
+def barb_end(base, side, length, variation):
+
+    direction = 1 if side > 0 else -1
+
+    # Natural variation
+    curve_factor = (
+        0.62
+        + 0.06 * math.sin(variation)
+        + random.uniform(-0.035, 0.035)
+    )
+
+    vertical_factor = (
+        0.72
+        + 0.05 * math.cos(variation)
+        + random.uniform(-0.04, 0.04)
+    )
+
+    x = base[0] + length * curve_factor
+
+    y = (
+        base[1]
+        + direction * length * vertical_factor
+    )
+
+    return x, y
+
+
+def draw_barb(base, side, length, color, detail=True):
+
+    direction = 1 if side > 0 else -1
+
+    endpoint = barb_end(
+        base,
+        side,
+        length,
+        base[0] * 0.03
+    )
+
+    bend = (
+        direction * random.uniform(8, 34)
+        + random.uniform(-9, 9)
+    )
+
+    # Main barb
+    draw_fiber(
+        base,
+        endpoint,
+        color,
+        random.choice((1, 1, 1, 2)),
+        bend
+    )
+
+    if not detail:
+        return
+
+    # --------------------------------------------------------
+    # SECONDARY FIBERS
+    # --------------------------------------------------------
+
+    fractions = (
+        0.20,
+        0.34,
+        0.48,
+        0.61,
+        0.73,
+        0.84
+    )
+
+    for fraction in fractions:
+
+        origin = (
+            base[0]
+            + (endpoint[0] - base[0]) * fraction,
+
+            base[1]
+            + (endpoint[1] - base[1]) * fraction
+        )
+
+        remaining = (
+            length
+            * (
+                0.13
+                + 0.22 * (1 - fraction)
+            )
+        )
+
+        secondary = (
+            origin[0]
+            + remaining
+            * (
+                0.40
+                + random.random() * 0.22
+            ),
+
+            origin[1]
+            + direction
+            * remaining
+            * (
+                0.50
+                + random.random() * 0.25
+            )
+        )
+
+        fine = rgba_mix(
+            color,
+            "#03100c",
+            random.uniform(0.08, 0.35)
+        )
+
+        draw_fiber(
+            origin,
+            secondary,
+            fine,
+            1,
+            direction * random.uniform(3, 15)
+        )
+
+
+# ============================================================
+# MAIN FEATHER BODY
+# ============================================================
+
+def draw_feather_body():
+
+    palette = [
+        "#0d3525",
+        "#123e2b",
+        "#176248",
+        "#21815c",
+        "#2d9569",
+        "#3ba478",
+        "#57994f",
+        "#6e9d4d",
+        "#2b6651",
+        "#174a55",
+        "#286d5e",
+    ]
+
+    # --------------------------------------------------------
+    # MAIN LONG FIBERS
+    # --------------------------------------------------------
+
+    for index in range(1050):
+
+        t = (
+            0.035
+            + (index % 260) / 270 * 0.925
+        )
+
+        t += random.uniform(
+            -0.012,
+            0.012
+        )
+
+        t = max(
+            0.02,
+            min(0.985, t)
+        )
+
+        # Alternate sides
+        side = (
+            1
+            if index % 2
+            else -1
+        )
+
+        # Feather becomes asymmetric toward tip
+        if t > 0.72 and side < 0:
+            if random.random() < 0.70:
+                side = 1
+
+        base = shaft_point(t)
+
+        # Feather naturally expands and tapers
+        taper = math.sin(
+            math.pi * min(1.0, t)
+        )
+
+        max_length = (
+            40
+            + 210
+            * taper
+            * (
+                0.78
+                + random.random() * 0.32
+            )
+        )
+
+        # Taper toward tip
+        if t > 0.76:
+            max_length *= (
+                (1.02 - t) * 4.2
+            )
+
+        length = max(
+            22,
+            max_length
+        )
+
+        color = random.choice(
+            palette
+        )
+
+        # Occasional golden fibers
+        if index % 13 == 0:
+
+            color = rgba_mix(
+                color,
+                "#b6b44a",
+                random.uniform(
+                    0.12,
+                    0.32
+                )
+            )
+
+        # Occasional darker fibers
+        if index % 17 == 0:
+
+            color = rgba_mix(
+                color,
+                "#061813",
+                random.uniform(
+                    0.20,
+                    0.45
+                )
+            )
+
+        draw_barb(
+            base,
+            side,
+            length,
+            color,
+            detail=(index % 3 != 0)
+        )
+
+        # Important:
+        # draw_fiber already batches animation,
+        # so no extra pause is necessary here.
+
+
+# ============================================================
+# ORGANIC EYE RINGS
+# ============================================================
+
+def irregular_ring(
+    center,
+    radius_x,
+    radius_y,
+    color,
+    count=60,
+    width=2
+):
+
+    points = []
+
+    for index in range(count + 1):
+
+        angle = (
+            math.tau
+            * index
+            / count
+        )
+
+        wobble = (
+            1
+            + random.uniform(
+                -0.035,
+                0.035
+            )
+        )
+
+        x = (
+            center[0]
+            + math.cos(angle)
+            * radius_x
+            * wobble
+        )
+
+        y = (
+            center[1]
+            + math.sin(angle)
+            * radius_y
+            * wobble
+        )
+
+        points.append(
+            (x, y)
+        )
+
+    stroke(
+        points,
+        color,
+        width,
+        animate=True
+    )
+
+
+# ============================================================
+# PEACOCK EYE
+# ============================================================
+
+def draw_eye():
+
+    # Focal point of the feather
+    center = (
+        238,
+        257
+    )
+
+    # --------------------------------------------------------
+    # OUTER GOLD / BROWN AREA
+    # --------------------------------------------------------
+
+    for layer in range(18):
+
+        rx = 146 - layer * 5.8
+        ry = 184 - layer * 7.1
+
+        color = rgba_mix(
+            "#152f1a",
+            "#a06b2e",
+            layer / 20
+        )
+
+        irregular_ring(
+            center,
+            rx,
+            ry,
+            color,
+            60,
+            2
+        )
+
+        if layer % 2 == 0:
+            pause_frame()
+
+    # --------------------------------------------------------
+    # GREEN REGION
+    # --------------------------------------------------------
+
+    for layer in range(14):
+
+        rx = 112 - layer * 4.0
+        ry = 143 - layer * 5.0
+
+        color = rgba_mix(
+            "#476728",
+            "#1e9b65",
+            layer / 15
+        )
+
+        irregular_ring(
+            center,
+            rx,
+            ry,
+            color,
+            55,
+            2
+        )
+
+        if layer % 2 == 0:
+            pause_frame()
+
+    # --------------------------------------------------------
+    # TURQUOISE REGION
+    # --------------------------------------------------------
+
+    for layer in range(12):
+
+        rx = 78 - layer * 3.0
+        ry = 104 - layer * 4.0
+
+        color = rgba_mix(
+            "#19b58c",
+            "#27d0c6",
+            layer / 13
+        )
+
+        irregular_ring(
+            center,
+            rx,
+            ry,
+            color,
+            52,
+            2
+        )
+
+        if layer % 2 == 0:
+            pause_frame()
+
+    # --------------------------------------------------------
+    # BLUE REGION
+    # --------------------------------------------------------
+
+    for layer in range(10):
+
+        rx = 52 - layer * 2.5
+        ry = 72 - layer * 3.1
+
+        color = rgba_mix(
+            "#1263a6",
+            "#12367e",
+            layer / 11
+        )
+
+        irregular_ring(
+            center,
+            rx,
+            ry,
+            color,
+            48,
+            2
+        )
+
+        if layer % 2 == 0:
+            pause_frame()
+
+    # --------------------------------------------------------
+    # DARK VIOLET CENTER
+    # --------------------------------------------------------
+
+    for layer in range(8):
+
+        rx = 31 - layer * 2.1
+        ry = 46 - layer * 2.7
+
+        color = rgba_mix(
+            "#321f6b",
+            "#070c2a",
+            layer / 9
+        )
+
+        irregular_ring(
+            center,
+            rx,
+            ry,
+            color,
+            42,
+            2
+        )
+
+        if layer % 2 == 0:
+            pause_frame()
+
+    # Fine fibers across the eye
+    draw_eye_fibers(
+        center
+    )
+
+
+# ============================================================
+# EYE FIBERS
+# ============================================================
+
+def draw_eye_fibers(center):
+
+    eye_colors = [
+        "#2ad0ae",
+        "#53b85a",
+        "#328fc4",
+        "#4a4ca0",
+        "#c99745",
+        "#163f75",
+        "#4ebc91",
+        "#78a74a",
+    ]
+
+    for index in range(300):
+
+        angle = random.uniform(
+            0,
+            math.tau
+        )
+
+        inner = random.uniform(
+            45,
+            83
+        )
+
+        outer = (
+            inner
+            + random.uniform(
+                20,
+                78
+            )
+        )
+
+        start = (
+            center[0]
+            + math.cos(angle)
+            * inner,
+
+            center[1]
+            + math.sin(angle)
+            * inner
+            * 1.28
+        )
+
+        angle2 = (
+            angle
+            + random.uniform(
+                -0.08,
+                0.08
+            )
+        )
+
+        end = (
+            center[0]
+            + math.cos(angle2)
+            * outer,
+
+            center[1]
+            + math.sin(angle2)
+            * outer
+            * 1.28
+        )
+
+        draw_fiber(
+            start,
+            end,
+            random.choice(
+                eye_colors
+            ),
+            1,
+            random.uniform(
+                -15,
+                15
+            )
+        )
+
+
+# ============================================================
+# HIGHLIGHTS
+# ============================================================
+
+def draw_highlights():
+
+    # --------------------------------------------------------
+    # LONG LIGHT FIBERS
+    # --------------------------------------------------------
+
+    for index in range(95):
+
+        t = random.uniform(
+            0.08,
+            0.92
+        )
+
+        side = random.choice(
+            (-1, 1)
+        )
+
+        base = shaft_point(t)
+
+        length = (
+            random.uniform(
+                25,
+                155
+            )
+            * math.sin(
+                math.pi * t
+            )
+        )
+
+        end = barb_end(
+            base,
+            side,
+            length,
+            index
+        )
+
+        color = random.choice(
+            (
+                "#9bd174",
+                "#78c7aa",
+                "#d2c467",
+                "#48b8b0",
+                "#b6d87c",
+                "#6dbb91"
+            )
+        )
+
+        draw_fiber(
+            base,
+            end,
+            color,
+            1,
+            side * random.uniform(
+                8,
+                24
+            )
+        )
+
+    # --------------------------------------------------------
+    # SMALL GLINTS
+    # --------------------------------------------------------
+
+    for index in range(55):
+
+        x = random.uniform(
+            -20,
+            360
+        )
+
+        y = random.uniform(
+            -10,
+            415
         )
 
         points = [
-            (x0, y),
-
+            (x, y),
             (
-                x0 + (x1 - x0) * .5 + curve,
-                y + (y1 - y) * .5
-            ),
-
-            (x1, y1)
+                x + random.uniform(
+                    2,
+                    7
+                ),
+                y + random.uniform(
+                    1,
+                    6
+                )
+            )
         ]
 
-        color = random.choice([
-            "#087965",
-            "#07957B",
-            "#126A9C",
-            "#1686B4",
-            "#159D81",
-            "#0B5478"
-        ])
-
-        line(
+        stroke(
             points,
-            color,
-            1
+            random.choice(
+                (
+                    "#c9dc8d",
+                    "#6dd0ad",
+                    "#d6b75d",
+                    "#8ecf91"
+                )
+            ),
+            1,
+            animate=True
         )
 
 
-# =========================================================
-# PEACOCK EYE
-# =========================================================
+# ============================================================
+# SUBTLE BACKGROUND
+# ============================================================
 
-eye_x = CENTER_X - 10
-eye_y = 390
+def draw_background():
 
+    # Base background is already set.
+    # Add only a few extremely subtle green atmospheric curves.
 
-# Outer green
-ellipse(
-    eye_x,
-    eye_y,
-    135,
-    175,
-    "#07553F"
-)
+    colors = [
+        "#03100c",
+        "#04130f",
+        "#051610",
+        "#061812"
+    ]
 
-# Bright green
-ellipse(
-    eye_x,
-    eye_y,
-    115,
-    150,
-    "#078260"
-)
+    for index in range(22):
 
-# Dark blue
-ellipse(
-    eye_x,
-    eye_y + 5,
-    95,
-    125,
-    "#075399"
-)
+        y = random.uniform(
+            -HEIGHT / 2,
+            HEIGHT / 2
+        )
 
-# Blue
-ellipse(
-    eye_x,
-    eye_y + 8,
-    78,
-    105,
-    "#1189C2"
-)
+        start = (
+            -WIDTH / 2,
+            y
+        )
 
-# Turquoise
-ellipse(
-    eye_x,
-    eye_y + 8,
-    59,
-    83,
-    "#10B398"
-)
+        end = (
+            WIDTH / 2,
+            y + random.uniform(
+                -35,
+                35
+            )
+        )
 
-# Gold
-ellipse(
-    eye_x,
-    eye_y + 8,
-    43,
-    62,
-    "#D8AA2F"
-)
+        points = curve_points(
+            start,
+            end,
+            random.uniform(
+                -25,
+                25
+            ),
+            10
+        )
 
-# Dark blue
-ellipse(
-    eye_x,
-    eye_y + 12,
-    34,
-    50,
-    "#06396D"
-)
+        # Background is deliberately fast.
+        stroke(
+            points,
+            random.choice(colors),
+            random.choice((1, 1, 2)),
+            animate=False
+        )
 
-# Green
-ellipse(
-    eye_x,
-    eye_y + 16,
-    24,
-    38,
-    "#08734D"
-)
-
-# Black pupil
-ellipse(
-    eye_x,
-    eye_y + 19,
-    13,
-    27,
-    "#01050A"
-)
+    screen.update()
 
 
-# =========================================================
-# EYE RAYS
-# =========================================================
+# ============================================================
+# FINAL ATMOSPHERE
+# ============================================================
 
-for i in range(100):
+def final_details():
 
-    angle = random.uniform(
-        0,
-        math.pi * 2
-    )
+    # A few ultra-thin dark fibers near the base
+    for index in range(35):
 
-    r1 = random.uniform(
-        80,
-        110
-    )
+        t = random.uniform(
+            0.02,
+            0.30
+        )
 
-    r2 = random.uniform(
-        120,
-        155
-    )
+        base = shaft_point(t)
 
-    x1 = eye_x + math.cos(angle) * r1
-    y1 = eye_y + math.sin(angle) * r1
+        side = random.choice(
+            (-1, 1)
+        )
 
-    x2 = eye_x + math.cos(angle) * r2
-    y2 = eye_y + math.sin(angle) * r2
+        length = random.uniform(
+            35,
+            130
+        )
 
-    line(
-        [(x1, y1), (x2, y2)],
-        random.choice([
-            "#18B99A",
-            "#168DC0",
-            "#3BCBA0",
-            "#D2B33A"
-        ]),
-        1
-    )
+        end = barb_end(
+            base,
+            side,
+            length,
+            index
+        )
 
-
-# =========================================================
-# SMALL FEATHER DETAILS
-# =========================================================
-
-for i in range(180):
-
-    angle = random.uniform(
-        0,
-        math.pi * 2
-    )
-
-    radius = random.uniform(
-        70,
-        180
-    )
-
-    x = eye_x + math.cos(angle) * radius
-    y = eye_y + math.sin(angle) * radius
-
-    t.penup()
-    t.goto(x, y)
-
-    t.dot(
-        random.choice([1, 2, 2]),
-        random.choice([
-            "#28BFA1",
-            "#319FC4",
-            "#D5BD55"
-        ])
-    )
+        draw_fiber(
+            base,
+            end,
+            random.choice(
+                (
+                    "#071b14",
+                    "#092219",
+                    "#123326",
+                    "#183b2d"
+                )
+            ),
+            1,
+            side * random.uniform(
+                5,
+                20
+            )
+        )
 
 
-# =========================================================
-# EYE HIGHLIGHT
-# =========================================================
+# ============================================================
+# MAIN
+# ============================================================
 
-t.penup()
-t.goto(
-    eye_x - 10,
-    eye_y + 40
-)
-t.dot(10, "#C8FFF4")
+def main():
 
-t.goto(
-    eye_x - 18,
-    eye_y + 55
-)
-t.dot(4, "white")
+    # --------------------------------------------------------
+    # 1. BACKGROUND
+    # --------------------------------------------------------
 
+    draw_background()
 
-# =========================================================
-# GOLDEN CLASP
-# =========================================================
+    # --------------------------------------------------------
+    # 2. CENTRAL SHAFT
+    # --------------------------------------------------------
 
-for i in range(7):
+    draw_shaft()
+    draw_feather_body()
+    draw_eye()
+    draw_highlights()
+    final_details()
 
-    x = -70 + i * 12
-    y = -265 + math.sin(i) * 4
+    screen.update()
+    screen.mainloop()
 
-    t.penup()
-    t.goto(x, y)
-    t.dot(9, "#FFD34E")
-
-
-# =========================================================
-# FINISH
-# =========================================================
-
-screen.update()
-turtle.done()
+if __name__ == "__main__":
+    main()
