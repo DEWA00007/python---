@@ -28,34 +28,22 @@ BG = "#020907"
 # Decrease it for faster animation.
 DRAW_DELAY = 0.012
 
-# Turtle will draw many things before refreshing the screen.
-# Larger = faster animation.
 FRAME_EVERY = 28
 
 operation_count = 0
 
-
-# ============================================================
-# TURTLE SETUP
-# ============================================================
 
 screen = turtle.Screen()
 screen.setup(WIDTH, HEIGHT)
 screen.title("Peacock Feather — Hand Drawn")
 screen.bgcolor(BG)
 
-# No automatic refreshing.
 screen.tracer(0, 0)
 
 pen = turtle.Turtle()
 pen.hideturtle()
 pen.speed(0)
 pen.penup()
-
-
-# ============================================================
-# COLOR UTILITIES
-# ============================================================
 
 def rgba_mix(first, second, amount):
     """
