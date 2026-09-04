@@ -279,11 +279,6 @@ def draw_shaft():
         animate=True
     )
 
-
-# ============================================================
-# BARB GEOMETRY
-# ============================================================
-
 def barb_end(base, side, length, variation):
 
     direction = 1 if side > 0 else -1
@@ -327,7 +322,6 @@ def draw_barb(base, side, length, color, detail=True):
         + random.uniform(-9, 9)
     )
 
-    # Main barb
     draw_fiber(
         base,
         endpoint,
@@ -338,10 +332,6 @@ def draw_barb(base, side, length, color, detail=True):
 
     if not detail:
         return
-
-    # --------------------------------------------------------
-    # SECONDARY FIBERS
-    # --------------------------------------------------------
 
     fractions = (
         0.20,
@@ -400,11 +390,6 @@ def draw_barb(base, side, length, color, detail=True):
             1,
             direction * random.uniform(3, 15)
         )
-
-
-# ============================================================
-# MAIN FEATHER BODY
-# ============================================================
 
 def draw_feather_body():
 
