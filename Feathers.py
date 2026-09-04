@@ -1,20 +1,9 @@
-"""
-Animated, hand-built realistic peacock feather.
-Single Python file.
-Uses ONLY Python Turtle + standard library.
-
-No PNG/JPG/SVG or external image files.
-"""
 
 import math
 import random
 import time
 import turtle
 
-
-# ============================================================
-# SETTINGS
-# ============================================================
 
 random.seed(23)
 
@@ -23,9 +12,6 @@ HEIGHT = 760
 
 BG = "#020907"
 
-# Animation controls
-# Increase DRAW_DELAY for slower animation.
-# Decrease it for faster animation.
 DRAW_DELAY = 0.012
 
 FRAME_EVERY = 28
