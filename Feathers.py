@@ -1,218 +1,358 @@
-from PIL import Image, ImageDraw
-import numpy as np
-import random
+import turtle
 import math
+import random
 
-# -----------------------------
-# SETTINGS
-# -----------------------------
-W, H = 1200, 1800
-random.seed(42)
+# =========================================================
+# PEACOCK FEATHER — CENTERED + SMALLER + DETAILED
+# =========================================================
 
-img = Image.new("RGB", (W, H), (8, 12, 18))
-draw = ImageDraw.Draw(img)
+screen = turtle.Screen()
+screen.setup(800, 800)
+screen.bgcolor("#071426")
+screen.title("Krishna's Peacock Feather")
 
-cx = W // 2
+# About 5x faster than normal Turtle drawing
+screen.tracer(0, 0)
 
-# -----------------------------
-# FEATHER SHAFT
-# -----------------------------
-shaft_top = 220
-shaft_bottom = 1650
+t = turtle.Turtle()
+t.speed(0)
+t.hideturtle()
 
-# Curved shaft
-points = []
+random.seed(10)
 
-for i in range(300):
-    y = shaft_top + (shaft_bottom - shaft_top) * i / 299
-    x = cx + 45 * math.sin((y - shaft_top) / 900)
-    points.append((x, y))
 
-draw.line(points, fill=(170, 125, 65), width=12)
-draw.line(points, fill=(230, 190, 100), width=4)
+# =========================================================
+# BASIC FUNCTIONS
+# =========================================================
 
-# -----------------------------
+def ellipse(x, y, rx, ry, color):
+    t.penup()
+    t.goto(x + rx, y)
+    t.pendown()
+
+    t.color(color)
+    t.begin_fill()
+
+    for i in range(50):
+        angle = 2 * math.pi * i / 50
+
+        t.goto(
+            x + rx * math.cos(angle),
+            y + ry * math.sin(angle)
+        )
+
+    t.end_fill()
+
+
+def line(points, color, width=1):
+    t.color(color)
+    t.pensize(width)
+
+    t.penup()
+    t.goto(points[0])
+    t.pendown()
+
+    for p in points[1:]:
+        t.goto(p)
+
+
+# =========================================================
+# FEATHER POSITION
+# =========================================================
+
+# Everything is centered around this point
+CENTER_X = 0
+CENTER_Y = 20
+
+
+# =========================================================
+# FEATHER STEM
+# =========================================================
+
+def stem_x(y):
+
+    # Gentle curve
+    return CENTER_X + 0.00025 * (y + 260) ** 2 - 35
+
+
+stem = []
+
+for i in range(130):
+
+    y = -280 + i * 4
+
+    stem.append(
+        (stem_x(y), y)
+    )
+
+# Main stem
+line(stem, "#795021", 8)
+
+# Golden highlight
+line(stem, "#D4A548", 2)
+
+
+# =========================================================
 # FEATHER BARBS
-# -----------------------------
-def shaft_x(y):
-    return cx + 45 * math.sin((y - shaft_top) / 900)
+# =========================================================
 
+# Moderate number of strands
+for i in range(260):
 
-for y in np.linspace(300, 1450, 850):
+    y = -120 + i * 2.8
 
-    x0 = shaft_x(y)
+    if y > 610:
+        break
 
-    # Feather gets wider near the middle
-    relative = (y - 300) / 1150
-    width = 250 * math.sin(math.pi * relative)
+    x0 = stem_x(y)
+
+    progress = (y + 120) / 730
+
+    # Smaller feather width
+    width = 205 * math.sin(progress * math.pi)
 
     if width < 5:
         continue
 
-    # Left and right fibers
     for side in [-1, 1]:
 
-        length = width * random.uniform(.75, 1.15)
-
-        angle = random.uniform(-0.15, 0.15)
-
-        x1 = x0 + side * length
-        y1 = y - length * .55 + random.uniform(-15, 15)
-
-        # Curved fiber
-        pts = []
-
-        for t in np.linspace(0, 1, 15):
-
-            xx = x0 + (x1 - x0) * t
-            yy = y + (y1 - y) * t
-
-            curve = math.sin(t * math.pi) * 35 * side
-
-            xx += curve
-
-            pts.append((xx, yy))
-
-        # Iridescent colors
-        colors = [
-            (15, 95, 75),
-            (20, 130, 105),
-            (15, 80, 150),
-            (30, 150, 120),
-            (10, 65, 110),
-            (55, 160, 125)
-        ]
-
-        color = random.choice(colors)
-
-        draw.line(
-            pts,
-            fill=color,
-            width=random.choice([1, 1, 1, 2])
+        length = width * random.uniform(
+            0.75,
+            1.0
         )
 
-# -----------------------------
-# PEACOCK EYE
-# -----------------------------
-eye_x = cx
-eye_y = 520
+        x1 = x0 + side * length
 
-def ellipse(center, radius, color):
-    x, y = center
-    draw.ellipse(
-        (x-radius, y-radius,
-         x+radius, y+radius),
-        fill=color
+        y1 = y + length * 0.42
+
+        curve = side * random.uniform(
+            8,
+            22
+        )
+
+        points = [
+            (x0, y),
+
+            (
+                x0 + (x1 - x0) * .5 + curve,
+                y + (y1 - y) * .5
+            ),
+
+            (x1, y1)
+        ]
+
+        color = random.choice([
+            "#087965",
+            "#07957B",
+            "#126A9C",
+            "#1686B4",
+            "#159D81",
+            "#0B5478"
+        ])
+
+        line(
+            points,
+            color,
+            1
+        )
+
+
+# =========================================================
+# PEACOCK EYE
+# =========================================================
+
+eye_x = CENTER_X - 10
+eye_y = 390
+
+
+# Outer green
+ellipse(
+    eye_x,
+    eye_y,
+    135,
+    175,
+    "#07553F"
+)
+
+# Bright green
+ellipse(
+    eye_x,
+    eye_y,
+    115,
+    150,
+    "#078260"
+)
+
+# Dark blue
+ellipse(
+    eye_x,
+    eye_y + 5,
+    95,
+    125,
+    "#075399"
+)
+
+# Blue
+ellipse(
+    eye_x,
+    eye_y + 8,
+    78,
+    105,
+    "#1189C2"
+)
+
+# Turquoise
+ellipse(
+    eye_x,
+    eye_y + 8,
+    59,
+    83,
+    "#10B398"
+)
+
+# Gold
+ellipse(
+    eye_x,
+    eye_y + 8,
+    43,
+    62,
+    "#D8AA2F"
+)
+
+# Dark blue
+ellipse(
+    eye_x,
+    eye_y + 12,
+    34,
+    50,
+    "#06396D"
+)
+
+# Green
+ellipse(
+    eye_x,
+    eye_y + 16,
+    24,
+    38,
+    "#08734D"
+)
+
+# Black pupil
+ellipse(
+    eye_x,
+    eye_y + 19,
+    13,
+    27,
+    "#01050A"
+)
+
+
+# =========================================================
+# EYE RAYS
+# =========================================================
+
+for i in range(100):
+
+    angle = random.uniform(
+        0,
+        math.pi * 2
     )
 
-# Outer green halo
-ellipse((eye_x, eye_y), 240, (8, 70, 55))
+    r1 = random.uniform(
+        80,
+        110
+    )
 
-# Blue ring
-ellipse((eye_x, eye_y), 190, (15, 80, 150))
+    r2 = random.uniform(
+        120,
+        155
+    )
 
-# Turquoise ring
-ellipse((eye_x, eye_y), 145, (15, 160, 150))
+    x1 = eye_x + math.cos(angle) * r1
+    y1 = eye_y + math.sin(angle) * r1
 
-# Gold ring
-ellipse((eye_x, eye_y), 105, (210, 170, 55))
+    x2 = eye_x + math.cos(angle) * r2
+    y2 = eye_y + math.sin(angle) * r2
 
-# Dark blue center
-ellipse((eye_x, eye_y), 78, (5, 35, 80))
+    line(
+        [(x1, y1), (x2, y2)],
+        random.choice([
+            "#18B99A",
+            "#168DC0",
+            "#3BCBA0",
+            "#D2B33A"
+        ]),
+        1
+    )
 
-# Green inner shape
-ellipse((eye_x, eye_y + 15), 55, (10, 110, 75))
 
-# Black center
-ellipse((eye_x, eye_y + 20), 35, (2, 12, 25))
+# =========================================================
+# SMALL FEATHER DETAILS
+# =========================================================
 
-# -----------------------------
-# EYE HIGHLIGHTS
-# -----------------------------
-for i in range(150):
+for i in range(180):
 
-    angle = random.uniform(0, math.pi * 2)
-    radius = random.uniform(90, 220)
+    angle = random.uniform(
+        0,
+        math.pi * 2
+    )
+
+    radius = random.uniform(
+        70,
+        180
+    )
 
     x = eye_x + math.cos(angle) * radius
     y = eye_y + math.sin(angle) * radius
 
-    r = random.choice([1, 1, 2, 3])
+    t.penup()
+    t.goto(x, y)
 
-    color = random.choice([
-        (40, 180, 150),
-        (30, 120, 190),
-        (100, 200, 150),
-        (220, 190, 70)
-    ])
-
-    draw.ellipse(
-        (x-r, y-r, x+r, y+r),
-        fill=color
+    t.dot(
+        random.choice([1, 2, 2]),
+        random.choice([
+            "#28BFA1",
+            "#319FC4",
+            "#D5BD55"
+        ])
     )
 
-# -----------------------------
-# FINE FEATHER HAIRS
-# -----------------------------
-for i in range(12000):
 
-    y = random.uniform(280, 1450)
+# =========================================================
+# EYE HIGHLIGHT
+# =========================================================
 
-    x0 = shaft_x(y)
-
-    rel = (y - 280) / 1170
-
-    max_width = 260 * math.sin(math.pi * rel)
-
-    if max_width <= 0:
-        continue
-
-    side = random.choice([-1, 1])
-
-    length = random.uniform(30, max_width)
-
-    x1 = x0 + side * length
-    y1 = y - length * random.uniform(.25, .65)
-
-    color = random.choice([
-        (8, 75, 65),
-        (10, 110, 90),
-        (15, 130, 120),
-        (15, 75, 130),
-        (30, 150, 130),
-        (50, 160, 120)
-    ])
-
-    draw.line(
-        [(x0, y), (x1, y1)],
-        fill=color,
-        width=1
-    )
-
-# -----------------------------
-# SHINE
-# -----------------------------
-shine = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-sd = ImageDraw.Draw(shine)
-
-for i in range(300):
-
-    x = random.randint(cx - 250, cx + 250)
-    y = random.randint(250, 1450)
-
-    sd.ellipse(
-        (x, y, x+random.randint(1, 4), y+random.randint(1, 4)),
-        fill=(100, 230, 210, random.randint(30, 120))
-    )
-
-img = Image.alpha_composite(
-    img.convert("RGBA"),
-    shine
+t.penup()
+t.goto(
+    eye_x - 10,
+    eye_y + 40
 )
+t.dot(10, "#C8FFF4")
 
-# -----------------------------
-# SAVE
-# -----------------------------
-img.save("ultra_realistic_peacock_feather.png")
+t.goto(
+    eye_x - 18,
+    eye_y + 55
+)
+t.dot(4, "white")
 
-print("Saved: ultra_realistic_peacock_feather.png")
+
+# =========================================================
+# GOLDEN CLASP
+# =========================================================
+
+for i in range(7):
+
+    x = -70 + i * 12
+    y = -265 + math.sin(i) * 4
+
+    t.penup()
+    t.goto(x, y)
+    t.dot(9, "#FFD34E")
+
+
+# =========================================================
+# FINISH
+# =========================================================
+
+screen.update()
+turtle.done()
