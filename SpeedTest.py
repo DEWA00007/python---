@@ -11,3 +11,8 @@ sentences = [
     "Never stop learning new skills.",
     "The quick brown fox jumps over the lazy dog."
              ]
+sentence = random.choice(sentences)
+print("=" * 50)
+print("          🧑‍💻 TYPING SPEED TEST")
+print("=" * 50)
+print("\nType the following sentence as fast as you can:\n")
