@@ -42,3 +42,20 @@ accuracy = (correct / len(sentence)) * 100
 
 mistakes = len(sentence) - correct
 
+print("\n" + "=" * 50)
+print("               📊 RESULTS")
+print("=" * 50)
+
+print(f"⏱️ Time:      {seconds:.2f} seconds")
+print(f"⚡ Speed:     {wpm:.2f} WPM")
+print(f"🎯 Accuracy:  {accuracy:.2f}%")
+print(f"❌ Mistakes:  {mistakes}")
+
+if wpm >= 60:
+    print("\n🔥 Excellent typing speed!")
+elif wpm >= 40:
+    print("\n😎 Good job!")
+else:
+    print("\n💪 Keep practicing!")
+
+print("=" * 50)
