@@ -32,3 +32,13 @@ words = len(typed.split())
 wpm = words / minutes if minutes > 0 else 0
 
 correct = 0
+
+
+for i in range(min(len(sentence), len(typed))):
+    if sentence[i] == typed[i]:
+        correct += 1
+
+accuracy = (correct / len(sentence)) * 100          
+
+mistakes = len(sentence) - correct
+
