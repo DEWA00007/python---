@@ -16,3 +16,19 @@ print("=" * 50)
 print("          🧑‍💻 TYPING SPEED TEST")
 print("=" * 50)
 print("\nType the following sentence as fast as you can:\n")
+print()
+
+print(sentence)
+input("Press ENTER when you're ready...")
+
+start = time.time()
+typed = input("\nYou: ")
+end = time.time()
+
+seconds = end - start
+minutes = seconds / 60
+
+words = len(typed.split())
+wpm = words / minutes if minutes > 0 else 0
+
+correct = 0
