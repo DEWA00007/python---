@@ -1,0 +1,7 @@
+Student Details
+----------------
+Name: Harry
+Age: 32
+Roll No: 5
+Course: MFC
+Marks: 80
